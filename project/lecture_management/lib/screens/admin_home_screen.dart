@@ -38,7 +38,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        selectedItemColor: Colors.teal,
+        selectedItemColor: Colors.indigo,
+        unselectedItemColor: Colors.grey,
         onTap: (index) => setState(() => _currentIndex = index),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.list), label: '수강생 목록'),
