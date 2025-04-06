@@ -1,26 +1,36 @@
-class Student {
-  static const String tableName = 'students';
+import 'package:hive/hive.dart';
 
-  static const String columnId = 'id';
-  static const String columnName = 'name';
-  static const String columnPhone = 'phone';
-  static const String columnGender = 'gender';
-  static const String columnEmail = 'email';
-  static const String columnRegisteredAt = 'registeredAt';
-  static const String columnLessonCount = 'monthlyLessonCount';
-  static const String columnTuitionPaidAt = 'tuitionPaidDate';
+part 'student.g.dart';
 
-  final int? id;
-  final String name;
-  final String phone;
-  final String? gender;
-  final String? email;
-  final DateTime registeredAt;
-  final int monthlyLessonCount;
-  final DateTime? tuitionPaidDate;
+@HiveType(typeId: 0)
+class Student extends HiveObject {
+  @HiveField(0)
+  String name;
 
+  @HiveField(1)
+  String phone;
+
+  @HiveField(2)
+  String? gender;
+
+  @HiveField(3)
+  String? email;
+
+  @HiveField(4)
+  DateTime registeredAt;
+
+  @HiveField(5)
+  int monthlyLessonCount;
+
+  @HiveField(6)
+  DateTime? tuitionPaidDate;
+
+  @HiveField(7)
+  List<DateTime> attendances = [];
+
+  @HiveField(8)
+  DateTime? nextEnrollDate;
   Student({
-    this.id,
     required this.name,
     required this.phone,
     this.gender,
@@ -28,33 +38,8 @@ class Student {
     required this.registeredAt,
     required this.monthlyLessonCount,
     this.tuitionPaidDate,
-  });
+    List<DateTime>? attendances,
+    this.nextEnrollDate,
+  }) : attendances = attendances ?? [];
 
-  factory Student.fromMap(Map<String, dynamic> map) {
-    return Student(
-      id: map[columnId],
-      name: map[columnName],
-      phone: map[columnPhone],
-      gender: map[columnGender],
-      email: map[columnEmail],
-      registeredAt: DateTime.parse(map[columnRegisteredAt]),
-      monthlyLessonCount: map[columnLessonCount],
-      tuitionPaidDate: map[columnTuitionPaidAt] != null
-          ? DateTime.tryParse(map[columnTuitionPaidAt])
-          : null,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      if (id != null) columnId: id,
-      columnName: name,
-      columnPhone: phone,
-      columnGender: gender,
-      columnEmail: email,
-      columnRegisteredAt: registeredAt.toIso8601String(),
-      columnLessonCount: monthlyLessonCount,
-      columnTuitionPaidAt: tuitionPaidDate?.toIso8601String(),
-    };
-  }
 }
