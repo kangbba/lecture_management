@@ -1,47 +1,60 @@
 class Student {
+  static const String tableName = 'students';
+
+  static const String columnId = 'id';
+  static const String columnName = 'name';
+  static const String columnPhone = 'phone';
+  static const String columnGender = 'gender';
+  static const String columnEmail = 'email';
+  static const String columnRegisteredAt = 'registeredAt';
+  static const String columnLessonCount = 'monthlyLessonCount';
+  static const String columnTuitionPaidAt = 'tuitionPaidDate';
+
   final int? id;
   final String name;
-  final String gender;
   final String phone;
+  final String? gender;
   final String? email;
-  final String registerDate;
-  final int monthlyCount;
-  final String firstPayment;
+  final DateTime registeredAt;
+  final int monthlyLessonCount;
+  final DateTime? tuitionPaidDate;
 
   Student({
     this.id,
     required this.name,
-    required this.gender,
     required this.phone,
+    this.gender,
     this.email,
-    required this.registerDate,
-    required this.monthlyCount,
-    required this.firstPayment,
+    required this.registeredAt,
+    required this.monthlyLessonCount,
+    this.tuitionPaidDate,
   });
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'gender': gender,
-      'phone': phone,
-      'email': email,
-      'registerDate': registerDate,
-      'monthlyCount': monthlyCount,
-      'firstPayment': firstPayment,
-    };
-  }
 
   factory Student.fromMap(Map<String, dynamic> map) {
     return Student(
-      id: map['id'] as int?,
-      name: map['name'] as String,
-      gender: map['gender'] as String,
-      phone: map['phone'] as String,
-      email: map['email'] as String?,
-      registerDate: map['registerDate'] as String,
-      monthlyCount: map['monthlyCount'] as int,
-      firstPayment: map['firstPayment'] as String,
+      id: map[columnId],
+      name: map[columnName],
+      phone: map[columnPhone],
+      gender: map[columnGender],
+      email: map[columnEmail],
+      registeredAt: DateTime.parse(map[columnRegisteredAt]),
+      monthlyLessonCount: map[columnLessonCount],
+      tuitionPaidDate: map[columnTuitionPaidAt] != null
+          ? DateTime.tryParse(map[columnTuitionPaidAt])
+          : null,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      if (id != null) columnId: id,
+      columnName: name,
+      columnPhone: phone,
+      columnGender: gender,
+      columnEmail: email,
+      columnRegisteredAt: registeredAt.toIso8601String(),
+      columnLessonCount: monthlyLessonCount,
+      columnTuitionPaidAt: tuitionPaidDate?.toIso8601String(),
+    };
   }
 }

@@ -1,21 +1,57 @@
 import 'package:flutter/material.dart';
-import 'screens/student_register_page.dart';
-import 'database/db_helper.dart';
+import 'screens/student_list_screen.dart';
+import 'screens/student_register_screen.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await initDatabase(); // DB 먼저 초기화
-  runApp(const MyApp());
+void main() {
+  runApp(const StudentApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class StudentApp extends StatelessWidget {
+  const StudentApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '학원 관리 앱',
-      theme: ThemeData(primarySwatch: Colors.indigo),
-      home: const StudentRegisterPage(),
+      title: '수강생 관리',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const HomeScreen(),
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('메인화면')),
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const StudentListScreen()),
+                );
+              },
+              child: const Text('수강생 목록 보기'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const StudentRegisterScreen()),
+                );
+              },
+              child: const Text('수강생 등록'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

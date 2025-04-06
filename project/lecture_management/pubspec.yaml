@@ -31,10 +31,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  path: ^1.9.0           # ✅ 이 줄을 추가!
-  sqflite: ^2.3.2
+  # Drift 관련
+  sqflite: ^2.3.0
   path_provider: ^2.1.2
-  intl: ^0.18.1
+  path: ^1.9.0
+  intl: ^0.18.1  # 최신 버전 (2025년 4월 기준)
+
 
 
   # The following adds the Cupertino Icons font to your application.
