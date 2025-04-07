@@ -38,10 +38,42 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     });
   }
 
-  void _confirmAttendance() async {
+  bool _hasAttendanceToday(Student student) {
+    final today = DateTime.now();
+    return student.lessonRecords.any((record) =>
+    record.date.year == today.year &&
+        record.date.month == today.month &&
+        record.date.day == today.day);
+  }
+
+  Future<void> _confirmAttendance() async {
     if (selectedStudent == null) return;
 
     final student = selectedStudent!;
+
+    // 오늘 출석 기록 여부 확인
+    if (_hasAttendanceToday(student)) {
+      final proceed = await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('이미 출석됨'),
+          content: const Text('오늘 이미 출석 완료 내역이 있습니다.\n그래도 출석을 진행하시겠습니까?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('네'),
+            ),
+          ],
+        ),
+      );
+
+      if (proceed != true) return;
+    }
+
     final now = DateTime.now();
     final lessonRounds = student.lessonRecords.map((r) => r.round).toList();
     final nextRound = lessonRounds.isEmpty ? 1 : lessonRounds.reduce((a, b) => a > b ? a : b) + 1;
@@ -52,11 +84,27 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
     await student.save();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('출석이 완료되었습니다.')),
-    );
-
     setState(() {});
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Row(
+          children: const [
+            Icon(Icons.check_circle, color: Colors.green),
+            SizedBox(width: 8),
+            Text('출석 완료'),
+          ],
+        ),
+        content: Text('${student.name}님의 출석이 성공적으로 처리되었습니다.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
   }
 
   String _format(DateTime date) => DateFormat('yyyy.MM.dd').format(date);

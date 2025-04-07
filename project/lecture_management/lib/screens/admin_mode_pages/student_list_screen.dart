@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
-import '../models/student.dart';
+import '../../models/student.dart';
 import 'student_register_screen.dart';
 
 class StudentListScreen extends StatelessWidget {

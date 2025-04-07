@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
-import '../models/student.dart';
+import '../../models/student.dart';
 
 class StudentRegisterScreen extends StatefulWidget {
   final Student? student;

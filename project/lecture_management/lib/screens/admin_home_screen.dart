@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'student_list_screen.dart';
-import 'student_register_screen.dart';
-import 'lesson_progress_screen.dart';
+import 'admin_mode_pages/student_list_screen.dart';
+import 'admin_mode_pages/student_register_screen.dart';
+import 'admin_mode_pages/lesson_progress_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
