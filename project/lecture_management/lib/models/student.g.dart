@@ -24,13 +24,15 @@ class StudentAdapter extends TypeAdapter<Student> {
       registeredAt: fields[4] as DateTime,
       monthlyLessonCount: fields[5] as int,
       tuitionPaidDate: fields[6] as DateTime?,
+      lessonRecords: (fields[7] as List?)?.cast<LessonRecord>(),
+      nextEnrollDate: fields[8] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Student obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -44,7 +46,11 @@ class StudentAdapter extends TypeAdapter<Student> {
       ..writeByte(5)
       ..write(obj.monthlyLessonCount)
       ..writeByte(6)
-      ..write(obj.tuitionPaidDate);
+      ..write(obj.tuitionPaidDate)
+      ..writeByte(7)
+      ..write(obj.lessonRecords)
+      ..writeByte(8)
+      ..write(obj.nextEnrollDate);
   }
 
   @override

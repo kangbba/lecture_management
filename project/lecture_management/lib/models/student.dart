@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import 'lesson_record.dart';
 
 part 'student.g.dart';
 
@@ -26,10 +27,11 @@ class Student extends HiveObject {
   DateTime? tuitionPaidDate;
 
   @HiveField(7)
-  List<DateTime> attendances = [];
+  List<LessonRecord> lessonRecords;
 
   @HiveField(8)
   DateTime? nextEnrollDate;
+
   Student({
     required this.name,
     required this.phone,
@@ -38,8 +40,7 @@ class Student extends HiveObject {
     required this.registeredAt,
     required this.monthlyLessonCount,
     this.tuitionPaidDate,
-    List<DateTime>? attendances,
+    List<LessonRecord>? lessonRecords,
     this.nextEnrollDate,
-  }) : attendances = attendances ?? [];
-
+  }) : lessonRecords = lessonRecords ?? [];
 }

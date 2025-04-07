@@ -14,7 +14,9 @@ class StudentRegisterScreen extends StatefulWidget {
 
 class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+
   late bool _editMode;
+  late Student? _target;
 
   String _name = '';
   String _phone = '';
@@ -28,15 +30,16 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
   void initState() {
     super.initState();
     _editMode = widget.student != null;
-    if (_editMode) {
-      final s = widget.student!;
-      _name = s.name;
-      _phone = s.phone;
-      _gender = s.gender;
-      _email = s.email;
-      _monthlyLessonCount = s.monthlyLessonCount;
-      _registeredDate = s.registeredAt;
-      _tuitionPaidDate = s.tuitionPaidDate;
+    _target = widget.student;
+
+    if (_editMode && _target != null) {
+      _name = _target!.name;
+      _phone = _target!.phone;
+      _gender = _target!.gender;
+      _email = _target!.email;
+      _monthlyLessonCount = _target!.monthlyLessonCount;
+      _registeredDate = _target!.registeredAt;
+      _tuitionPaidDate = _target!.tuitionPaidDate;
     }
   }
 
@@ -44,29 +47,29 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
 
-    final student = Student(
-      name: _name,
-      phone: _phone,
-      gender: _gender,
-      email: _email,
-      registeredAt: _registeredDate,
-      monthlyLessonCount: _monthlyLessonCount,
-      tuitionPaidDate: _tuitionPaidDate,
-    );
-
     final box = Hive.box<Student>('students');
-    if (_editMode) {
-      widget.student!
-        ..name = student.name
-        ..phone = student.phone
-        ..gender = student.gender
-        ..email = student.email
-        ..registeredAt = student.registeredAt
-        ..monthlyLessonCount = student.monthlyLessonCount
-        ..tuitionPaidDate = student.tuitionPaidDate;
-      await widget.student!.save();
+
+    if (_editMode && _target != null) {
+      _target!
+        ..name = _name
+        ..phone = _phone
+        ..gender = _gender
+        ..email = _email
+        ..monthlyLessonCount = _monthlyLessonCount
+        ..registeredAt = _registeredDate
+        ..tuitionPaidDate = _tuitionPaidDate;
+      await _target!.save();
     } else {
-      await box.add(student);
+      final newStudent = Student(
+        name: _name,
+        phone: _phone,
+        gender: _gender,
+        email: _email,
+        registeredAt: _registeredDate,
+        monthlyLessonCount: _monthlyLessonCount,
+        tuitionPaidDate: _tuitionPaidDate,
+      );
+      await box.add(newStudent);
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -89,7 +92,7 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
   Future<void> _pickDate(Function(DateTime) onPicked) async {
     DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _registeredDate,
+      initialDate: DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
     );
@@ -98,100 +101,96 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Form(
-        key: _formKey,
-        child: ListView(
-          children: [
-            TextFormField(
-              initialValue: _name,
-              decoration: const InputDecoration(labelText: '이름'),
-              onSaved: (val) => _name = val ?? '',
-              validator: (val) => val == null || val.isEmpty ? '이름을 입력하세요' : null,
-            ),
-            TextFormField(
-              initialValue: _phone,
-              decoration: const InputDecoration(labelText: '전화번호'),
-              keyboardType: TextInputType.phone,
-              onSaved: (val) => _phone = val ?? '',
-              validator: (val) =>
-              val == null || val.length < 10 ? '유효한 번호를 입력하세요' : null,
-            ),
-            Row(
-              children: ['남', '여'].map((g) {
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _gender = g),
-                    child: Container(
-                      margin:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: _gender == g ? Colors.blue : Colors.grey[300],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        g,
-                        style: TextStyle(
-                          color: _gender == g ? Colors.white : Colors.black,
-                          fontWeight: FontWeight.bold,
+    return Material(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              TextFormField(
+                initialValue: _name,
+                decoration: const InputDecoration(labelText: '이름'),
+                onSaved: (val) => _name = val ?? '',
+                validator: (val) => val == null || val.isEmpty ? '이름을 입력하세요' : null,
+              ),
+              TextFormField(
+                initialValue: _phone,
+                decoration: const InputDecoration(labelText: '전화번호'),
+                keyboardType: TextInputType.phone,
+                onSaved: (val) => _phone = val ?? '',
+                validator: (val) => val == null || val.length < 10 ? '전화번호를 입력하세요' : null,
+              ),
+              Row(
+                children: ['남', '여'].map((g) {
+                  return Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _gender = g),
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        decoration: BoxDecoration(
+                          color: _gender == g ? Colors.blue : Colors.grey[300],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          g,
+                          style: TextStyle(
+                            color: _gender == g ? Colors.white : Colors.black,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              }).toList(),
-            ),
-            TextFormField(
-              initialValue: _email,
-              decoration: const InputDecoration(labelText: '이메일'),
-              onSaved: (val) => _email = val,
-            ),
-            ListTile(
-              title: const Text('등록일'),
-              subtitle:
-              Text(DateFormat('yyyy-MM-dd').format(_registeredDate)),
-              trailing: IconButton(
-                icon: const Icon(Icons.date_range),
-                onPressed: () =>
-                    _pickDate((date) => setState(() => _registeredDate = date)),
+                  );
+                }).toList(),
               ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [4, 8].map((e) {
-                return Row(
-                  children: [
-                    Radio(
-                      value: e,
-                      groupValue: _monthlyLessonCount,
-                      onChanged: (val) =>
-                          setState(() => _monthlyLessonCount = val as int),
-                    ),
-                    Text('${e}회'),
-                  ],
-                );
-              }).toList(),
-            ),
-            ListTile(
-              title: const Text('첫 수강료 납부일'),
-              subtitle: Text(_tuitionPaidDate != null
-                  ? DateFormat('yyyy-MM-dd').format(_tuitionPaidDate!)
-                  : '미지정'),
-              trailing: IconButton(
-                icon: const Icon(Icons.date_range),
-                onPressed: () => _pickDate(
-                        (date) => setState(() => _tuitionPaidDate = date)),
+              TextFormField(
+                initialValue: _email,
+                decoration: const InputDecoration(labelText: '이메일'),
+                onSaved: (val) => _email = val,
               ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _submit,
-              child: Text(_editMode ? '저장' : '등록하기'),
-            ),
-          ],
+              const SizedBox(height: 12),
+              ListTile(
+                title: const Text('등록일'),
+                subtitle: Text(DateFormat('yyyy-MM-dd').format(_registeredDate)),
+                trailing: IconButton(
+                  icon: const Icon(Icons.date_range),
+                  onPressed: () => _pickDate((d) => setState(() => _registeredDate = d)),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [4, 8].map((e) {
+                  return Row(
+                    children: [
+                      Radio(
+                        value: e,
+                        groupValue: _monthlyLessonCount,
+                        onChanged: (val) => setState(() => _monthlyLessonCount = val as int),
+                      ),
+                      Text('${e}회'),
+                    ],
+                  );
+                }).toList(),
+              ),
+              ListTile(
+                title: const Text('첫 납부일'),
+                subtitle: Text(_tuitionPaidDate != null
+                    ? DateFormat('yyyy-MM-dd').format(_tuitionPaidDate!)
+                    : '미지정'),
+                trailing: IconButton(
+                  icon: const Icon(Icons.date_range),
+                  onPressed: () => _pickDate((d) => setState(() => _tuitionPaidDate = d)),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _submit,
+                child: Text(_editMode ? '저장' : '등록하기'),
+              ),
+            ],
+          ),
         ),
       ),
     );

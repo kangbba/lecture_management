@@ -7,9 +7,9 @@ import 'student_register_screen.dart';
 class StudentListScreen extends StatelessWidget {
   const StudentListScreen({super.key});
 
-  String _formatDate(DateTime? date) {
+  String _format(DateTime? date) {
     if (date == null) return '-';
-    return DateFormat('yyyy-MM-dd').format(date);
+    return DateFormat('yyyy.MM.dd').format(date);
   }
 
   void _navigateToEdit(BuildContext context, Student student) {
@@ -23,10 +23,10 @@ class StudentListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final studentsBox = Hive.box<Student>('students');
+    final box = Hive.box<Student>('students');
 
     return ValueListenableBuilder(
-      valueListenable: studentsBox.listenable(),
+      valueListenable: box.listenable(),
       builder: (context, Box<Student> box, _) {
         final students = box.values.toList();
 
@@ -37,7 +37,7 @@ class StudentListScreen extends StatelessWidget {
         return ListView.separated(
           itemCount: students.length,
           separatorBuilder: (_, __) => const Divider(),
-          itemBuilder: (_, index) {
+          itemBuilder: (context, index) {
             final s = students[index];
             return ListTile(
               title: Row(
@@ -55,9 +55,9 @@ class StudentListScreen extends StatelessWidget {
                 children: [
                   Text(s.phone),
                   if (s.email != null) Text(s.email!),
-                  Text('최초등록일: ${_formatDate(s.registeredAt)}'),
+                  Text('등록일: ${_format(s.registeredAt)}'),
                   Text('수강횟수/월: ${s.monthlyLessonCount}'),
-                  Text('첫수강료 납부일: ${_formatDate(s.tuitionPaidDate)}'),
+                  Text('납부일: ${_format(s.tuitionPaidDate)}'),
                 ],
               ),
             );
