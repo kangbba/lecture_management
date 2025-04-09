@@ -5,8 +5,13 @@ import '../../models/student.dart';
 
 class StudentRegisterScreen extends StatefulWidget {
   final Student? student;
+  final bool canDelete; // 삭제 허용 여부
 
-  const StudentRegisterScreen({super.key, this.student});
+  const StudentRegisterScreen({
+    super.key,
+    this.student,
+    required this.canDelete,
+  });
 
   @override
   State<StudentRegisterScreen> createState() => _StudentRegisterScreenState();
@@ -22,7 +27,7 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
   String _phone = '';
   String? _gender;
   String? _email;
-  int _monthlyLessonCount = 4;
+  int _preferredLessonCount = 4;
   DateTime _registeredDate = DateTime.now();
   DateTime? _tuitionPaidDate;
 
@@ -37,9 +42,8 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
       _phone = _target!.phone;
       _gender = _target!.gender;
       _email = _target!.email;
-      _monthlyLessonCount = _target!.monthlyLessonCount;
+      _preferredLessonCount = _target!.preferredLessonCount;
       _registeredDate = _target!.registeredAt;
-      _tuitionPaidDate = _target!.tuitionPaidDate;
     }
   }
 
@@ -55,9 +59,8 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
         ..phone = _phone
         ..gender = _gender
         ..email = _email
-        ..monthlyLessonCount = _monthlyLessonCount
-        ..registeredAt = _registeredDate
-        ..tuitionPaidDate = _tuitionPaidDate;
+        ..preferredLessonCount = _preferredLessonCount
+        ..registeredAt = _registeredDate;
       await _target!.save();
     } else {
       final newStudent = Student(
@@ -66,8 +69,7 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
         gender: _gender,
         email: _email,
         registeredAt: _registeredDate,
-        monthlyLessonCount: _monthlyLessonCount,
-        tuitionPaidDate: _tuitionPaidDate,
+        preferredLessonCount: _preferredLessonCount,
       );
       await box.add(newStudent);
     }
@@ -80,11 +82,42 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
       _formKey.currentState?.reset();
       setState(() {
         _gender = null;
-        _monthlyLessonCount = 4;
+        _preferredLessonCount = 4;
         _registeredDate = DateTime.now();
         _tuitionPaidDate = null;
       });
     } else {
+      Navigator.pop(context);
+    }
+  }
+
+  void _delete() async {
+    if (_target == null) return;
+
+    final hasRecords = _target!.lessonRecords.isNotEmpty || _target!.payments.isNotEmpty;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('수강생 삭제 확인'),
+        content: Text(
+          hasRecords
+              ? '이 수강생은 수업 기록 또는 납부 기록이 있습니다.\n삭제 시 모든 데이터가 사라집니다.\n정말 삭제하시겠습니까?'
+              : '정말로 이 수강생을 삭제하시겠습니까?',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('삭제'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await _target!.delete();
       Navigator.pop(context);
     }
   }
@@ -166,8 +199,8 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
                     children: [
                       Radio(
                         value: e,
-                        groupValue: _monthlyLessonCount,
-                        onChanged: (val) => setState(() => _monthlyLessonCount = val as int),
+                        groupValue: _preferredLessonCount,
+                        onChanged: (val) => setState(() => _preferredLessonCount = val as int),
                       ),
                       Text('${e}회'),
                     ],
@@ -189,6 +222,15 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
                 onPressed: _submit,
                 child: Text(_editMode ? '저장' : '등록하기'),
               ),
+              if (_editMode && widget.canDelete) ...[
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  onPressed: _delete,
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  icon: const Icon(Icons.delete),
+                  label: const Text('수강생 삭제'),
+                ),
+              ],
             ],
           ),
         ),

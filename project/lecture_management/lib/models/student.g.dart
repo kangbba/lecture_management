@@ -22,10 +22,10 @@ class StudentAdapter extends TypeAdapter<Student> {
       gender: fields[2] as String?,
       email: fields[3] as String?,
       registeredAt: fields[4] as DateTime,
-      monthlyLessonCount: fields[5] as int,
-      tuitionPaidDate: fields[6] as DateTime?,
-      lessonRecords: (fields[7] as List?)?.cast<LessonRecord>(),
-      nextEnrollDate: fields[8] as DateTime?,
+      preferredLessonCount: fields[5] as int,
+      lessonRecords: (fields[6] as List?)?.cast<LessonRecord>(),
+      nextEnrollDate: fields[7] as DateTime?,
+      payments: (fields[8] as List?)?.cast<PaymentRecord>(),
     );
   }
 
@@ -44,13 +44,13 @@ class StudentAdapter extends TypeAdapter<Student> {
       ..writeByte(4)
       ..write(obj.registeredAt)
       ..writeByte(5)
-      ..write(obj.monthlyLessonCount)
+      ..write(obj.preferredLessonCount)
       ..writeByte(6)
-      ..write(obj.tuitionPaidDate)
-      ..writeByte(7)
       ..write(obj.lessonRecords)
+      ..writeByte(7)
+      ..write(obj.nextEnrollDate)
       ..writeByte(8)
-      ..write(obj.nextEnrollDate);
+      ..write(obj.payments);
   }
 
   @override

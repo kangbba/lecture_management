@@ -16,7 +16,7 @@ class StudentListScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => StudentRegisterScreen(student: student),
+        builder: (_) => StudentRegisterScreen(student: student, canDelete: true,),
       ),
     );
   }
@@ -56,8 +56,7 @@ class StudentListScreen extends StatelessWidget {
                   Text(s.phone),
                   if (s.email != null) Text(s.email!),
                   Text('등록일: ${_format(s.registeredAt)}'),
-                  Text('수강횟수/월: ${s.monthlyLessonCount}'),
-                  Text('납부일: ${_format(s.tuitionPaidDate)}'),
+                  Text('수강횟수/월: ${s.preferredLessonCount}'),
                 ],
               ),
             );

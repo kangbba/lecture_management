@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project/screens/admin_mode_pages/payment_screen.dart';
 import 'admin_mode_pages/student_list_screen.dart';
 import 'admin_mode_pages/student_register_screen.dart';
 import 'admin_mode_pages/lesson_progress_screen.dart';
@@ -14,15 +15,15 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
+    const StudentRegisterScreen(canDelete: false,),
     const StudentListScreen(),
-    const StudentRegisterScreen(),
     const LessonProgressScreen(),
-    const Placeholder(child: Center(child: Text('수강료 관리 예정'))),
+    const PaymentScreen(),
   ];
 
   final List<String> _titles = [
-    '수강생 목록',
     '수강생 등록',
+    '수강생 목록',
     '수업진행 관리',
     '수강료 관리',
   ];
@@ -42,8 +43,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         unselectedItemColor: Colors.grey,
         onTap: (index) => setState(() => _currentIndex = index),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.list), label: '목록'),
           BottomNavigationBarItem(icon: Icon(Icons.person_add), label: '등록'),
+          BottomNavigationBarItem(icon: Icon(Icons.list), label: '목록'),
           BottomNavigationBarItem(icon: Icon(Icons.school), label: '진행'),
           BottomNavigationBarItem(icon: Icon(Icons.payment), label: '수강료'),
         ],

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../models/student.dart';
+import '../lesson_bar_guide.dart';
+import '../lesson_payment_bar.dart';
 import 'lesson_detail_screen.dart';
 
 class LessonProgressScreen extends StatelessWidget {
@@ -50,14 +52,21 @@ class LessonProgressScreen extends StatelessWidget {
               final s = students[index];
               return ListTile(
                 onTap: () => _goToDetail(context, s),
-                title: Text('${s.name} (${s.monthlyLessonCount}회/월)'),
+                title: Text('${s.name} (선호 ${s.preferredLessonCount}회/월)'),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const SizedBox(height: 6),
+                    LessonPaymentBar(
+                      student: s,
+                      mode: LessonBarMode.attendance,
+                    ),
+                    const SizedBox(height: 4),
                     Text('최종 수업일: ${_formatDate(_getLastLesson(s))}'),
                     Text('누적 수업 횟수: ${_getTotalLessons(s)}'),
                   ],
                 ),
+                isThreeLine: true,
                 trailing: const Icon(Icons.chevron_right),
               );
             },

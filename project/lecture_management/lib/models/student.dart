@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'lesson_record.dart';
+import 'payment_record.dart';
 
 part 'student.g.dart';
 
@@ -21,16 +22,16 @@ class Student extends HiveObject {
   DateTime registeredAt;
 
   @HiveField(5)
-  int monthlyLessonCount;
+  int preferredLessonCount; // 참고용: 수강생이 보통 납부할 때 선택하는 레슨 회차 수 (예: 4회, 8회 등)
 
   @HiveField(6)
-  DateTime? tuitionPaidDate;
-
-  @HiveField(7)
   List<LessonRecord> lessonRecords;
 
-  @HiveField(8)
+  @HiveField(7)
   DateTime? nextEnrollDate;
+
+  @HiveField(8)
+  List<PaymentRecord> payments;
 
   Student({
     required this.name,
@@ -38,9 +39,10 @@ class Student extends HiveObject {
     this.gender,
     this.email,
     required this.registeredAt,
-    required this.monthlyLessonCount,
-    this.tuitionPaidDate,
+    required this.preferredLessonCount,
     List<LessonRecord>? lessonRecords,
     this.nextEnrollDate,
-  }) : lessonRecords = lessonRecords ?? [];
+    List<PaymentRecord>? payments,
+  })  : lessonRecords = lessonRecords ?? [],
+        payments = payments ?? [];
 }

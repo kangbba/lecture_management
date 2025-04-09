@@ -51,7 +51,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
     final student = selectedStudent!;
 
-    // 오늘 출석 기록 여부 확인
     if (_hasAttendanceToday(student)) {
       final proceed = await showDialog<bool>(
         context: context,
@@ -84,7 +83,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
     await student.save();
 
-    setState(() {});
+    // UI 업데이트
+    _searchStudent();
 
     showDialog(
       context: context,
@@ -164,7 +164,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            const Text('전화번호 뒷자리 3~4자리를 입력하세요'),
+            const Text('전화번호 뒷자리 4자리를 입력하세요'),
             Row(
               children: [
                 Expanded(
@@ -173,6 +173,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     maxLength: 4,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(hintText: '예: 1234'),
+                    onChanged: (_) => _searchStudent(), // 실시간 검색 가능하게 설정
                   ),
                 ),
                 const SizedBox(width: 8),
