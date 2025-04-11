@@ -5,7 +5,7 @@ import '../../models/student.dart';
 
 class StudentRegisterScreen extends StatefulWidget {
   final Student? student;
-  final bool canDelete; // 삭제 허용 여부
+  final bool canDelete;
 
   const StudentRegisterScreen({
     super.key,
@@ -29,7 +29,6 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
   String? _email;
   int _preferredLessonCount = 4;
   DateTime _registeredDate = DateTime.now();
-  DateTime? _tuitionPaidDate;
 
   @override
   void initState() {
@@ -52,22 +51,44 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
     _formKey.currentState!.save();
 
     final box = Hive.box<Student>('students');
+    final trimmedPhone = _phone.trim();
+
+    // ✅ 중복 전화번호 확인 (편집 모드가 아닌 경우에만)
+    if (!_editMode) {
+      final isDuplicate = box.values.any((s) => s.phone == trimmedPhone);
+      if (isDuplicate) {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('중복된 전화번호'),
+            content: const Text('이미 등록된 전화번호입니다.\n다시 확인해주세요.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('확인'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+    }
 
     if (_editMode && _target != null) {
       _target!
-        ..name = _name
-        ..phone = _phone
+        ..name = _name.trim()
+        ..phone = _phone.trim()
         ..gender = _gender
-        ..email = _email
+        ..email = _email?.trim()
         ..preferredLessonCount = _preferredLessonCount
         ..registeredAt = _registeredDate;
       await _target!.save();
     } else {
       final newStudent = Student(
-        name: _name,
-        phone: _phone,
+        name: _name.trim(),
+        phone: _phone.trim(),
         gender: _gender,
-        email: _email,
+        email: _email?.trim(),
         registeredAt: _registeredDate,
         preferredLessonCount: _preferredLessonCount,
       );
@@ -84,12 +105,12 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
         _gender = null;
         _preferredLessonCount = 4;
         _registeredDate = DateTime.now();
-        _tuitionPaidDate = null;
       });
     } else {
       Navigator.pop(context);
     }
   }
+
 
   void _delete() async {
     if (_target == null) return;
@@ -125,7 +146,7 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
   Future<void> _pickDate(Function(DateTime) onPicked) async {
     DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _registeredDate,
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
     );
@@ -139,21 +160,45 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
         padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
+
           child: ListView(
             children: [
               TextFormField(
                 initialValue: _name,
-                decoration: const InputDecoration(labelText: '이름'),
+                decoration: const InputDecoration(
+                  labelText: '이름 (*)',
+                  labelStyle: TextStyle(fontSize: 14),
+                  hintText: '예: 홍길동',
+                  hintStyle: TextStyle(fontSize: 12, color: Colors.black26), // 힌트 텍스트 크기 줄임
+                ),
                 onSaved: (val) => _name = val ?? '',
                 validator: (val) => val == null || val.isEmpty ? '이름을 입력하세요' : null,
               ),
+
               TextFormField(
                 initialValue: _phone,
-                decoration: const InputDecoration(labelText: '전화번호'),
+                decoration: const InputDecoration(
+                  labelText: '전화번호 (*)',
+                  labelStyle: TextStyle(fontSize: 14),
+                  hintText: '예: 01012345678',
+                  hintStyle: TextStyle(fontSize: 12, color: Colors.black26),
+                ),
                 keyboardType: TextInputType.phone,
                 onSaved: (val) => _phone = val ?? '',
                 validator: (val) => val == null || val.length < 10 ? '전화번호를 입력하세요' : null,
               ),
+
+              TextFormField(
+                initialValue: _email,
+                decoration: const InputDecoration(
+                  labelText: '이메일',
+                  labelStyle: TextStyle(fontSize: 14),
+                  hintText: '예: example@email.com',
+                  hintStyle: TextStyle(fontSize: 12, color: Colors.black26),
+                ),
+                onSaved: (val) => _email = val,
+              ),
+
               Row(
                 children: ['남', '여'].map((g) {
                   return Expanded(
@@ -178,14 +223,9 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
                   );
                 }).toList(),
               ),
-              TextFormField(
-                initialValue: _email,
-                decoration: const InputDecoration(labelText: '이메일'),
-                onSaved: (val) => _email = val,
-              ),
               const SizedBox(height: 12),
               ListTile(
-                title: const Text('등록일'),
+                title: const Text('최초 등록일'),
                 subtitle: Text(DateFormat('yyyy-MM-dd').format(_registeredDate)),
                 trailing: IconButton(
                   icon: const Icon(Icons.date_range),
@@ -206,16 +246,6 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
                     ],
                   );
                 }).toList(),
-              ),
-              ListTile(
-                title: const Text('첫 납부일'),
-                subtitle: Text(_tuitionPaidDate != null
-                    ? DateFormat('yyyy-MM-dd').format(_tuitionPaidDate!)
-                    : '미지정'),
-                trailing: IconButton(
-                  icon: const Icon(Icons.date_range),
-                  onPressed: () => _pickDate((d) => setState(() => _tuitionPaidDate = d)),
-                ),
               ),
               const SizedBox(height: 20),
               ElevatedButton(

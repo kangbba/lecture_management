@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'models/student.dart';
 import 'models/lesson_record.dart';
 import 'models/payment_record.dart';
@@ -60,6 +61,7 @@ void main() async {
   //   }
   // }
 
+  await initializeDateFormatting('ko'); // ✅ 여기선 1개의 인자만 필요
   runApp(const LectureApp());
 }
 

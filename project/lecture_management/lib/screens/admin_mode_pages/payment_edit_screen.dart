@@ -189,7 +189,7 @@ class _PaymentEditScreenState extends State<PaymentEditScreen> {
                 );
               }),
             const Divider(height: 32),
-            const Text('🆕 새로운 납부 등록', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text('🆕 연장 등록', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             Form(
               key: _formKey,
               child: Column(

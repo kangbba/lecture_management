@@ -15,78 +15,103 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   final TextEditingController _controller = TextEditingController();
   List<Student> matches = [];
   Student? selectedStudent;
+  bool searchMode = true;
+  bool isButtonEnabled = false;
 
-  void _searchStudent() {
-    final box = Hive.box<Student>('students');
-    final input = _controller.text.trim();
-
-    if (input.length < 3) {
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(() {
       setState(() {
-        matches = [];
-        selectedStudent = null;
+        isButtonEnabled = _controller.text.trim().length == 4;
       });
-      return;
-    }
-
-    final result = box.values
-        .where((s) => s.phone.endsWith(input))
-        .toList();
-
-    setState(() {
-      matches = result;
-      selectedStudent = result.length == 1 ? result.first : null;
     });
   }
 
-  bool _hasAttendanceToday(Student student) {
-    final today = DateTime.now();
-    return student.lessonRecords.any((record) =>
-    record.date.year == today.year &&
-        record.date.month == today.month &&
-        record.date.day == today.day);
+  void _searchStudent() {
+    final input = _controller.text.trim();
+    if (input.length != 4) return;
+
+    final box = Hive.box<Student>('students');
+    final result = box.values.where((s) => s.phone.endsWith(input)).toList();
+
+    if (result.length == 1) {
+      setState(() {
+        selectedStudent = result.first;
+        searchMode = false;
+      });
+    } else if (result.length > 1) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 80),
+            contentPadding: const EdgeInsets.all(16),
+            title: const Text('회원을 선택하세요', textAlign: TextAlign.center, style: TextStyle(fontSize: 16),),
+            content: SizedBox(
+              height: 200,
+              width: double.maxFinite,
+              child: ListView(
+                children: result.map((s) {
+                  return ListTile(
+                    title: Text(s.name, textAlign: TextAlign.center),
+                    subtitle: Text(s.phone, textAlign: TextAlign.center),
+                    onTap: () {
+                      setState(() {
+                        selectedStudent = s;
+                        searchMode = false;
+                      });
+                      Navigator.pop(context);
+                    },
+                  );
+                }).toList(),
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('검색 결과가 없습니다.')),
+      );
+    }
   }
 
   Future<void> _confirmAttendance() async {
     if (selectedStudent == null) return;
 
     final student = selectedStudent!;
+    final today = DateTime.now();
 
-    if (_hasAttendanceToday(student)) {
+    final already = student.lessonRecords.any((record) =>
+    record.date.year == today.year &&
+        record.date.month == today.month &&
+        record.date.day == today.day);
+
+    if (already) {
       final proceed = await showDialog<bool>(
         context: context,
         builder: (_) => AlertDialog(
           title: const Text('이미 출석됨'),
           content: const Text('오늘 이미 출석 완료 내역이 있습니다.\n그래도 출석을 진행하시겠습니까?'),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('취소'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('네'),
-            ),
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
+            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('네')),
           ],
         ),
       );
-
       if (proceed != true) return;
     }
 
-    final now = DateTime.now();
     final lessonRounds = student.lessonRecords.map((r) => r.round).toList();
     final nextRound = lessonRounds.isEmpty ? 1 : lessonRounds.reduce((a, b) => a > b ? a : b) + 1;
 
     student.lessonRecords.add(
-      LessonRecord(date: now, round: nextRound, status: '완료'),
+      LessonRecord(date: today, round: nextRound, status: '완료'),
     );
-
     await student.save();
 
-    // UI 업데이트
-    _searchStudent();
-
-    showDialog(
+    await showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: Row(
@@ -99,7 +124,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         content: Text('${student.name}님의 출석이 성공적으로 처리되었습니다.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              Navigator.of(context).pop(); // 닫기
+              setState(() {
+                searchMode = true;
+                _controller.clear();
+                isButtonEnabled = false;
+              });
+            },
             child: const Text('확인'),
           ),
         ],
@@ -109,103 +141,152 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   String _format(DateTime date) => DateFormat('yyyy.MM.dd').format(date);
 
-  Widget _buildStudentInfo() {
-    if (selectedStudent == null) return const SizedBox.shrink();
-
-    final s = selectedStudent!;
-    final lessonRounds = s.lessonRecords.map((r) => r.round).toList();
-    final maxRound = lessonRounds.isEmpty ? 0 : lessonRounds.reduce((a, b) => a > b ? a : b);
-    final nextRound = maxRound + 1;
-
-    String nextPayText;
-    if (s.nextEnrollDate != null) {
-      nextPayText = '다음 납부일은 ${_format(s.nextEnrollDate!)} 입니다.';
-    } else {
-      final fallback = DateTime(
-        s.registeredAt.year,
-        s.registeredAt.month + 1,
-        s.registeredAt.day,
-      );
-      nextPayText = '별도 설정된 납부일이 없습니다.\n기본 납부일은 ${_format(fallback)} 입니다.';
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Divider(),
-        Text('${s.name}님은 $nextRound회차 입니다.', style: const TextStyle(fontSize: 20)),
-        const SizedBox(height: 8),
-        Text('등록일: ${_format(s.registeredAt)}'),
-        Text('누적 출석 기록 수: ${s.lessonRecords.length}'),
-        const SizedBox(height: 12),
-        Text(nextPayText, style: const TextStyle(color: Colors.red)),
-        const SizedBox(height: 20),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.check_circle),
-            label: const Text('출석 완료하기', style: TextStyle(fontSize: 18)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-            onPressed: _confirmAttendance,
-          ),
-        ),
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('출석 확인')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
+  Widget _buildSearchSection() {
+    return SizedBox(
+      height: 300,
+      child: Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text('전화번호 뒷자리 4자리를 입력하세요'),
-            Row(
+            const SizedBox(height: 18),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Expanded(
+                SizedBox(
+                  width: 180,
+                  height: 80,
                   child: TextField(
                     controller: _controller,
                     maxLength: 4,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(hintText: '예: 1234'),
-                    onChanged: (_) => _searchStudent(), // 실시간 검색 가능하게 설정
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 28), // 텍스트 크기 증가
+                    decoration: const InputDecoration(
+                      hintText: '예: 1234',
+                      hintStyle: TextStyle(fontSize: 20, color: Colors.grey),
+                      counterText: '', // maxLength 아래 숫자 제거
+                      isDense: false,
+                      contentPadding: EdgeInsets.symmetric(vertical: 20),
+                      border: OutlineInputBorder(),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _searchStudent,
-                  child: const Text('검색'),
+
+                const SizedBox(height: 22),
+                SizedBox(
+                  width: 120,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: isButtonEnabled ? _searchStudent : null,
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                            (states) {
+                          if (states.contains(MaterialState.disabled)) {
+                            return Colors.grey.shade300; // 비활성화 상태일 때 색
+                          }
+                          return Colors.indigo; // 활성화 상태일 때 색
+                        },
+                      ),
+                    ),
+                    child: Text('검색', style : TextStyle(color : isButtonEnabled ? Colors.white : Colors.black))
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            if (matches.isEmpty)
-              const Text('검색 결과가 없습니다.')
-            else if (matches.length > 1)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('여러 명이 검색되었습니다. 선택하세요:'),
-                  const SizedBox(height: 8),
-                  ...matches.map((s) => ListTile(
-                    title: Text(s.name),
-                    subtitle: Text(s.phone),
-                    trailing: selectedStudent == s
-                        ? const Icon(Icons.check, color: Colors.green)
-                        : null,
-                    onTap: () => setState(() => selectedStudent = s),
-                  )),
-                ],
-              ),
-            const SizedBox(height: 10),
-            _buildStudentInfo(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildConfirmationSection() {
+    final s = selectedStudent!;
+    final today = DateFormat('yyyy년 MM월 dd일 (EEE)', 'ko').format(DateTime.now());
+
+    return Center(
+      child: SizedBox(
+        width: 400,
+        height: 600,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 32),
+            RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: s.name,
+                    style: const TextStyle(
+                      fontSize: 52,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.black,
+                    ),
+                  ),
+                  TextSpan(
+                    text: ' 님',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 28),
+            // Text(
+            //   today,
+            //   style: const TextStyle(fontSize: 18, color: Colors.grey),
+            // ),
+            // const SizedBox(height: 28),
+            Container(
+              width: 200,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.green,
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: TextButton.icon(
+                icon: const Icon(Icons.check, color: Colors.white),
+                label: const Text('출석하기', style: TextStyle(color: Colors.white, fontSize: 16)),
+                onPressed: _confirmAttendance,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              width: 180,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.grey,
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: TextButton.icon(
+                icon: const Icon(Icons.undo, color: Colors.white),
+                label: const Text('돌아가기', style: TextStyle(color: Colors.white, fontSize: 16)),
+
+                onPressed: () {
+                  setState(() {
+                    searchMode = true;
+                    _controller.clear();
+                    isButtonEnabled = false;
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: searchMode ? _buildSearchSection() : _buildConfirmationSection(),
       ),
     );
   }

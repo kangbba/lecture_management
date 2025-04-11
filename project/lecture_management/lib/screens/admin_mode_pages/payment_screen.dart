@@ -44,7 +44,7 @@ class PaymentScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(s.name),
-          Text('최근 납부: ${latest?.lessonCount ?? '-'}회분'),
+          Text(latest?.lessonCount == null ? '' : '최근 납부 ${latest?.lessonCount ?? '-'}회분'),
         ],
       ),
       subtitle: Column(
