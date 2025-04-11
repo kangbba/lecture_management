@@ -199,30 +199,30 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
                 onSaved: (val) => _email = val,
               ),
 
-              Row(
-                children: ['남', '여'].map((g) {
-                  return Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _gender = g),
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        decoration: BoxDecoration(
-                          color: _gender == g ? Colors.blue : Colors.grey[300],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          g,
-                          style: TextStyle(
-                            color: _gender == g ? Colors.white : Colors.black,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
+              // Row(
+              //   children: ['남', '여'].map((g) {
+              //     return Expanded(
+              //       child: GestureDetector(
+              //         onTap: () => setState(() => _gender = g),
+              //         child: Container(
+              //           margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+              //           padding: const EdgeInsets.symmetric(vertical: 14),
+              //           decoration: BoxDecoration(
+              //             color: _gender == g ? Colors.blue : Colors.grey[300],
+              //             borderRadius: BorderRadius.circular(10),
+              //           ),
+              //           alignment: Alignment.center,
+              //           child: Text(
+              //             g,
+              //             style: TextStyle(
+              //               color: _gender == g ? Colors.white : Colors.black,
+              //             ),
+              //           ),
+              //         ),
+              //       ),
+              //     );
+              //   }).toList(),
+              // ),
               const SizedBox(height: 12),
               ListTile(
                 title: const Text('최초 등록일'),
