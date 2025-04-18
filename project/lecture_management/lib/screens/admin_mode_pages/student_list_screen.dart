@@ -43,7 +43,8 @@ class StudentListScreen extends StatelessWidget {
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('${index + 1}. ${s.name} (${s.gender ?? '성별 미정'})'),
+                  Text('${index + 1}. ${s.name}'),
+                  //Text('(${s.gender ?? '성별 미정'})'),
                   TextButton(
                     onPressed: () => _navigateToEdit(context, s),
                     child: const Text('수정'),
@@ -56,7 +57,7 @@ class StudentListScreen extends StatelessWidget {
                   Text(s.phone),
                   if (s.email != null) Text(s.email!),
                   Text('등록일: ${_format(s.registeredAt)}'),
-                  Text('수강횟수/월: ${s.preferredLessonCount}'),
+                  Text('수강희망 횟수/월: ${s.preferredLessonCount}'),
                 ],
               ),
             );

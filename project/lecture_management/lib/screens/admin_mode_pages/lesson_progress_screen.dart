@@ -52,7 +52,7 @@ class LessonProgressScreen extends StatelessWidget {
               final s = students[index];
               return ListTile(
                 onTap: () => _goToDetail(context, s),
-                title: Text('${s.name} (선호 ${s.preferredLessonCount}회/월)'),
+                title: Text('${s.name} (수강희망 횟수 ${s.preferredLessonCount}회/월)'),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

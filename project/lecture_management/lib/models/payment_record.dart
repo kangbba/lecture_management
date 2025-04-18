@@ -18,4 +18,16 @@ class PaymentRecord {
     required this.lessonCount,
     required this.amount,
   });
+
+  factory PaymentRecord.fromJson(Map<String, dynamic> json) => PaymentRecord(
+    date: DateTime.parse(json['date']),
+    lessonCount: json['lessonCount'],
+    amount: json['amount'],
+  );
+
+  Map<String, dynamic> toJson() => {
+    'date': date.toIso8601String(),
+    'lessonCount': lessonCount,
+    'amount': amount,
+  };
 }
